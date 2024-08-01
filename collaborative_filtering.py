@@ -26,7 +26,7 @@ class CollaborativeFiltering:
             articles_metadata_df = pd.read_csv(self.articles_metadata_path)
         else:
             articles_metadata_df = None
-            
+
         # Vérifier si clicks_path est un répertoire ou un fichier
         if os.path.isdir(self.clicks_path):
             # Lire tous les fichiers CSV dans le répertoire
@@ -112,6 +112,10 @@ class CollaborativeFiltering:
         self.svd_model = joblib.load(filename)
         logging.info(f'Modèle chargé depuis {filename}')
 
+    def load_model_df(self, svd_model):
+        self.svd_model = svd_model
+        logging.info(f'Modèle svd chargé')
+
     def predict(self, user_index, user_interaction_matrix):
         """ Fait des prédictions basées sur la matrice d'interaction de l'utilisateur. """
         if self.svd_model:
@@ -135,6 +139,17 @@ class CollaborativeFiltering:
         else:
             self.user_article_matrix += new_interaction_matrix
         logging.info("Données mises à jour avec de nouvelles interactions.")
+
+    def load_user_article_matrix_df(self, matrix_df):
+        self.user_article_matrix = matrix_df
+        
+        # Si nécessaire, renommer la première colonne en 'user_id' (au cas où le nom serait différent)
+        self.user_article_matrix.rename(columns={self.user_article_matrix.columns[0]: 'user_id'}, inplace=True)
+        
+        logging.info(f"Matrice d'interaction chargée")
+        logging.info(f"Colonnes de la matrice : {self.user_article_matrix.columns}")
+        logging.info(f"Shape de la matrice : {self.user_article_matrix.shape}")
+        logging.info(f"Premières lignes de la matrice :\n{self.user_article_matrix.head()}")
 
     def load_user_article_matrix(self, matrix_path):
         # Charger le CSV en spécifiant que la première colonne (user_id) ne doit pas être utilisée comme index
